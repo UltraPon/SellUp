@@ -118,10 +118,9 @@ WSGI_APPLICATION = 'SellUp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-import dj_database_url
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://user:pass@db:5432/dbname',
+        default='postgresql://postgres:postgres@localhost:5432/postgres',
         conn_max_age=600
     )
 }
