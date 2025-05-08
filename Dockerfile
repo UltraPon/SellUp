@@ -45,4 +45,5 @@ RUN python -c "import django; print(django.__version__)"
 EXPOSE $PORT
 
 # Стартуем приложение
-CMD ["gunicorn", "SellUp.wsgi:application", "--bind", "0.0.0.0:$PORT"]
+CMD ["sh", "./entrypoint.sh"]
+
