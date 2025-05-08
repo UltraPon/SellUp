@@ -20,6 +20,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
+    netcat \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/venv /opt/venv
@@ -27,14 +28,14 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 COPY . .
 
-RUN chmod +x ./entrypoint.sh
-
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    DJANGO_SETTINGS_MODULE=SellUp.settings
+    DJANGO_SETTINGS_MODULE=SellUp.settings \
+    DATABASE_HOST=db \
+    DATABASE_PORT=5432
 
-RUN python -c "import django; print(django.__version__)"
+RUN chmod +x ./entrypoint.sh
 
 EXPOSE $PORT
 
-CMD ["sh", "./entrypoint.sh"]
+CMD ["./entrypoint.sh"]
