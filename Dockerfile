@@ -20,7 +20,6 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
-    netcat \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/venv /opt/venv
@@ -34,7 +33,10 @@ ENV PYTHONUNBUFFERED=1 \
     DATABASE_HOST=db \
     DATABASE_PORT=5432
 
-RUN chmod +x ./entrypoint.sh
+# Проверяем что Django доступен
+RUN python -c "import django; print(f'Django {django.__version__} is available')"
+
+RUN chmod +x entrypoint.sh
 
 EXPOSE $PORT
 
