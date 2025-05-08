@@ -12,11 +12,19 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import pickle
 from pathlib import Path
 import os
+
+from django.contrib import staticfiles
 from google.oauth2 import service_account
 from google_auth_oauthlib.flow import InstalledAppFlow
+from dotenv import load_dotenv
+import dj_database_url
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 # Quick-start development settings - unsuitable for production
@@ -250,3 +258,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024
+
+if 'RAILWAY' in os.environ:
+    DEBUG = False
+    ALLOWED_HOSTS = ['*']
+    CSRF_TRUSTED_ORIGINS = [f'https://{os.getenv("RAILWAY_STATIC_URL")}']
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
