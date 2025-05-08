@@ -41,10 +41,8 @@ ENV PYTHONUNBUFFERED=1 \
 # Проверяем установку Django
 RUN python -c "import django; print(django.__version__)"
 
-# Собираем статику и применяем миграции
-RUN python manage.py collectstatic --noinput && \
-    python manage.py migrate --noinput
-
+# Указываем порт
 EXPOSE $PORT
 
+# Стартуем приложение
 CMD ["gunicorn", "SellUp.wsgi:application", "--bind", "0.0.0.0:$PORT"]
