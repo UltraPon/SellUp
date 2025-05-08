@@ -1,0 +1,17 @@
+app = "sellup"  # заменишь на свое имя приложения
+
+[build]
+  builder = "nixpacks"
+
+[build.args]
+  NIXPACKS_LANG = "python"
+
+[env]
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
