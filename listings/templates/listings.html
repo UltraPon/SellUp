@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Объявления</title>
+</head>
+<body>
+    <h1>Список объявлений</h1>
+    <ul>
+        {% for listing in listings %}
+            <li>
+                <h2>{{ listing.title }}</h2>
+                <p>{{ listing.description }}</p>
+                <p>Цена: {{ listing.price }} ₽</p>
+            </li>
+        {% empty %}
+            <p>Нет объявлений</p>
+        {% endfor %}
+    </ul>
+</body>
+</html>

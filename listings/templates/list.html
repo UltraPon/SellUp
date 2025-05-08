@@ -1,0 +1,12 @@
+<h1>Объявления</h1>
+
+<ul>
+    {% for listing in listings %}
+        <li>
+            <h2>{{ listing.title }}</h2>
+            <p>{{ listing.description }}</p>
+            <p>Цена: {{ listing.price }}</p>
+            <p>Категория: {{ listing.category.name }}</p>
+        </li>
+    {% endfor %}
+</ul>
