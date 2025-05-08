@@ -1,28 +1,49 @@
-FROM python:3.11-slim
+FROM python:3.11-slim as builder
 
 WORKDIR /app
 
-# Установка системных зависимостей
+# Устанавливаем системные зависимости
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq-dev gcc python3-dev \
+    build-essential \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Копируем зависимости первыми для кэширования
+# Создаем и активируем виртуальное окружение
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Устанавливаем зависимости
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Копируем весь проект
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Устанавливаем runtime зависимости
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Копируем виртуальное окружение
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Копируем проект
 COPY . .
 
 # Настройки окружения
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    DJANGO_SETTINGS_MODULE=SellUp.settings \
-    PATH="/app/.local/bin:$PATH"
+    DJANGO_SETTINGS_MODULE=SellUp.settings
 
-# Собираем статику
-RUN python -m manage collectstatic --noinput
+# Проверяем установку Django
+RUN python -c "import django; print(django.__version__)"
+
+# Собираем статику и применяем миграции
+RUN python manage.py collectstatic --noinput && \
+    python manage.py migrate --noinput
 
 EXPOSE $PORT
 
