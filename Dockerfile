@@ -1,10 +1,10 @@
-FROM python:3.11
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Устанавливаем системные зависимости для psycopg2 и других пакетов
+# Установка системных зависимостей
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq-dev \
+    libpq-dev gcc python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Копируем зависимости первыми для кэширования
@@ -18,10 +18,11 @@ COPY . .
 # Настройки окружения
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    DJANGO_SETTINGS_MODULE=SellUp.settings
+    DJANGO_SETTINGS_MODULE=SellUp.settings \
+    PATH="/app/.local/bin:$PATH"
 
 # Собираем статику
-RUN python manage.py collectstatic --noinput
+RUN python -m manage collectstatic --noinput
 
 EXPOSE $PORT
 
