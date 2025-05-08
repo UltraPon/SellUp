@@ -25,7 +25,7 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy only necessary files (exclude frontend files)
+# Copy only necessary files
 COPY SellUp/ ./SellUp/
 COPY listings/ ./listings/
 COPY manage.py .
@@ -35,10 +35,14 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     DJANGO_SETTINGS_MODULE=SellUp.settings
 
-# Collect static files (if needed)
-RUN python manage.py collectstatic --noinput
+# Collect static files (skip if jazzmin is not properly installed)
+RUN if [ -f "/opt/venv/lib/python3.11/site-packages/jazzmin/__init__.py" ]; then \
+        python manage.py collectstatic --noinput; \
+    else \
+        echo "Skipping collectstatic (jazzmin not installed)"; \
+    fi
 
-# Expose port (use default or from $PORT)
+# Expose port
 EXPOSE 8000
 
 # Run Gunicorn
