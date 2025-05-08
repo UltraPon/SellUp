@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import pickle
 from pathlib import Path
 import os
+import sys
 
 from django.contrib import staticfiles
 from google.oauth2 import service_account
