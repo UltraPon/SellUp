@@ -1,0 +1,4 @@
+{
+  "buildCommand": "cd sell-up-ui && npm install && npm run build",
+  "startCommand": "cd sell-up-ui && npx serve -s build"
+}
