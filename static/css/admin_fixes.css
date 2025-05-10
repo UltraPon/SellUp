@@ -1,0 +1,14 @@
+#header {
+    width: 100%;
+    overflow: hidden;
+}
+
+#branding {
+    max-width: 100%;
+}
+
+#branding img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}

@@ -69,36 +69,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://10.0.2.2:8081",
-    "https://api.imgur.com",
-    "http://10.0.2.2",
-    "https://sell-up-five.vercel.app",
-    "https://sellup.onrender.com",
-]
-
-CORS_ORIGIN_WHITELIST = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://10.0.2.2:8081",
-    "https://api.imgur.com",
-    "https://sell-up-five.vercel.app",
-    "https://sellup.onrender.com",
-]
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://10.0.2.2:8081",
-    "https://api.imgur.com",
-    "https://sell-up-five.vercel.app",
-    "https://sellup.onrender.com",
-]
-
 ROOT_URLCONF = 'SellUp.urls'
 
 TEMPLATES = [
@@ -171,11 +141,42 @@ AUTHENTICATION_BACKENDS = [
 
 SESSION_COOKIE_AGE = 3600
 SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_NAME = 'sessionid'
-CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = True
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://10.0.2.2:8081",
+    "https://api.imgur.com",
+    "http://10.0.2.2",
+    "https://sell-up-five.vercel.app",
+    "https://sellup.onrender.com",
+]
+
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://10.0.2.2:8081",
+    "https://api.imgur.com",
+    "https://sell-up-five.vercel.app",
+    "https://sellup.onrender.com",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://10.0.2.2:8081",
+    "https://api.imgur.com",
+    "https://sell-up-five.vercel.app",
+    "https://sellup.onrender.com",
+]
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -227,7 +228,7 @@ JAZZMIN_SETTINGS = {
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
     "related_modal_active": True,
-    "custom_css": None,
+    "custom_css": "css/admin_fixes.css",
     "custom_js": None,
     "show_ui_builder": True,
     "changeform_format": "horizontal_tabs",
