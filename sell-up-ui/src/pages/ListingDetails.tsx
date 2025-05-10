@@ -91,19 +91,71 @@ export default function ListingDetails() {
   navigate(`/messages/${listing.user.id}`);
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const token = localStorage.getItem('token');
+
+        // Параллельная загрузка основных данных
+        const [listingResponse, userResponse, favoriteResponse] = await Promise.all([
+          api.get(`listings/${id}/`),
+          token ? api.get('profile/', { headers: { 'Authorization': `Token ${token}` } }).catch(() => null) : null,
+          token ? api.get(`favorites/?listing=${id}`, { headers: { 'Authorization': `Token ${token}` } }).catch(() => null) : null
+        ]);
+
+        // Обработка данных объявления
+        if (!listingResponse.data) {
+          throw new Error("Данные объявления не получены");
+        }
+        setListing(listingResponse.data);
+
+        if (listingResponse.data.images?.[0]?.url) {
+          setMainImage(listingResponse.data.images[0].url);
+        }
+
+        // Обработка данных пользователя
+        if (userResponse?.data) {
+          setCurrentUser({ id: userResponse.data.id });
+        }
+
+        // Обработка избранного
+        if (favoriteResponse && favoriteResponse.data && favoriteResponse.data.length > 0) {
+          setIsFavorite(true);
+          setFavoriteId(favoriteResponse.data[0].id);
+        }
+
+        // Загрузка отзывов
+        if (listingResponse.data.user?.id) {
+          await fetchReviews(listingResponse.data.user.id);
+        }
+
+      } catch (err: unknown) {
+        const error = err as ApiError;
+        console.error("Ошибка при загрузке данных:", error);
+        setError(error.response?.data?.message || "Не удалось загрузить объявление");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
+  // Оптимизированная версия fetchReviews
   const fetchReviews = async (userId: number) => {
     try {
       const token = localStorage.getItem('token');
       const headers = token ? { 'Authorization': `Token ${token}` } : {};
 
-      const response = await api.get(
-        `reviews/`,
-        {
-          params: { reviewed: userId },
-          headers: headers
-        }
-      );
-      setReviews(response.data);
+      const response = await api.get(`reviews/`, {
+        params: { reviewed: userId },
+        headers
+      });
+
+      setReviews(response.data || []);
     } catch (error: unknown) {
       const err = error as ApiError;
       console.error('Ошибка при загрузке отзывов:', err);
