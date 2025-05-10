@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import pickle
 from pathlib import Path
 import os
+
+import env
 from google.oauth2 import service_account
 from google_auth_oauthlib.flow import InstalledAppFlow
 import dj_database_url
@@ -30,6 +32,9 @@ SECRET_KEY = 'django-insecure--%4&+ul9xtn&uu3e1-qsz^)vagpyjn4z8w43bpe4@vfnj%pic+
 DEBUG = True
 
 ALLOWED_HOSTS = ['sellup.onrender.com']
+
+FRONTEND_URL = env.str('FRONTEND_URL', default='https://sell-up-five.vercel.app')
+BACKEND_URL = env.str('BACKEND_URL', default='https://sellup.onrender.com')
 
 
 # Application definition

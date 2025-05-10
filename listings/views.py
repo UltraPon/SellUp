@@ -55,7 +55,7 @@ def generate_confirmation_token():
 
 # Функция отправки email с подтверждением
 def send_confirmation_email(user_email, token):
-    confirmation_url = f"http://localhost:8000/confirm-email/{token}/"
+    confirmation_url = f"{settings.FRONTEND_URL}/confirm-email/{token}/"
     subject = "Подтвердите ваш email"
     message = f"Перейдите по ссылке для подтверждения вашего email: {confirmation_url}"
 
@@ -514,7 +514,7 @@ def request_password_reset(request):
         user.save()
 
         # Отправляем email
-        reset_url = f"http://localhost:3000/reset-password/{token}/"
+        reset_url = f"{settings.FRONTEND_URL}/reset-password/{token}/"
         send_mail(
             'Восстановление пароля',
             f'Для сброса пароля перейдите по ссылке: {reset_url}',
