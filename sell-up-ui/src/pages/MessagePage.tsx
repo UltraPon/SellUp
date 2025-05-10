@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../api/apiClient';
 
 interface Message {
   id: number;
@@ -24,6 +24,15 @@ interface User {
   username: string;
 }
 
+interface ApiError {
+  isAxiosError?: boolean;
+  response?: {
+    status?: number;
+    data?: any;
+  };
+  message?: string;
+}
+
 const MessagePage: React.FC = () => {
   const { userId } = useParams<{ userId?: string }>();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -38,23 +47,20 @@ const MessagePage: React.FC = () => {
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Функция для прокрутки вниз
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior });
     }
   };
 
-  // Проверка на нахождение внизу
   const checkIfAtBottom = () => {
     if (messagesContainerRef.current) {
       const { scrollHeight, scrollTop, clientHeight } = messagesContainerRef.current;
-      const atBottom = scrollHeight - scrollTop <= clientHeight + 50; // 50px threshold
+      const atBottom = scrollHeight - scrollTop <= clientHeight + 50;
       setIsAtBottom(atBottom);
     }
   };
 
-  // Получаем профиль
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -62,27 +68,25 @@ const MessagePage: React.FC = () => {
       return;
     }
 
-    axios
-      .get('/profile/', { headers: { Authorization: `Token ${token}` } })
+    api.get<User>('profile/', { headers: { Authorization: `Token ${token}` } })
       .then(res => setCurrentUser(res.data))
-      .catch(err => {
-        console.error('Не удалось получить профиль:', err);
+      .catch((err: unknown) => {
+        const error = err as ApiError;
+        console.error('Не удалось получить профиль:', error);
         navigate('/login');
       });
   }, [navigate]);
 
-  // Функция для загрузки сообщений и диалогов
   const loadMessages = async (userId?: string) => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
     try {
       if (userId) {
-        const res = await axios.get<Message[]>(`/messages/?user_id=${userId}`, {
+        const res = await api.get<Message[]>(`messages/?user_id=${userId}`, {
           headers: { Authorization: `Token ${token}` },
         });
         setMessages(prevMessages => {
-          // Check if messages actually changed to avoid unnecessary re-renders
           if (JSON.stringify(prevMessages) !== JSON.stringify(res.data)) {
             return res.data;
           }
@@ -90,7 +94,7 @@ const MessagePage: React.FC = () => {
         });
       }
 
-      const conv = await axios.get<Conversation[]>('/messages/conversations/', {
+      const conv = await api.get<Conversation[]>('messages/conversations/', {
         headers: { Authorization: `Token ${token}` },
       });
       setConversations(prevConvs => {
@@ -99,16 +103,16 @@ const MessagePage: React.FC = () => {
         }
         return prevConvs;
       });
-    } catch (err: any) {
-      console.error('Ошибка загрузки сообщений/диалогов:', err.response || err);
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      console.error('Ошибка загрузки сообщений/диалогов:', error);
+      if (error.isAxiosError && error.response?.status === 401) {
         localStorage.removeItem('token');
         navigate('/login');
       }
     }
   };
 
-  // Загружаем список диалогов и сообщения с интервалом
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -122,42 +126,36 @@ const MessagePage: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [userId, navigate]);
 
-  // Auto-scroll logic
   useEffect(() => {
-    // Only auto-scroll if:
-    // 1. User is at bottom and not manually scrolling
-    // 2. Or when new message is sent by current user
     if (isAtBottom && !isUserScrolling) {
       scrollToBottom();
     }
   }, [messages, isAtBottom, isUserScrolling]);
 
-  // Initial scroll to bottom when entering chat
   useEffect(() => {
     if (userId && messages.length > 0) {
       scrollToBottom('auto');
     }
-  }, [userId]); // Only run when userId changes (entering chat)
+  }, [userId]);
 
-  // Отправка нового сообщения
   const sendMessage = async () => {
     if (!userId || !newMessage.trim()) return;
     const token = localStorage.getItem('token');
     if (!token) return;
 
     try {
-      const res = await axios.post<Message>(
-        '/messages/',
+      const res = await api.post<Message>(
+        'messages/',
         { receiver: userId, content: newMessage },
         { headers: { Authorization: `Token ${token}` } }
       );
       setMessages(prev => [...prev, res.data]);
       setNewMessage('');
-      // Force scroll to bottom when sending a message
       scrollToBottom();
-    } catch (err) {
-      console.error('Ошибка отправки сообщения:', err);
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      console.error('Ошибка отправки сообщения:', error);
+      if (error.isAxiosError && error.response?.status === 401) {
         localStorage.removeItem('token');
         navigate('/login');
       } else {
@@ -166,21 +164,17 @@ const MessagePage: React.FC = () => {
     }
   };
 
-  // Обработка события прокрутки
   const handleScroll = () => {
     checkIfAtBottom();
 
-    // Detect user-initiated scrolling
     if (!isUserScrolling) {
       setIsUserScrolling(true);
     }
 
-    // Clear previous timeout if exists
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    // Set a timeout to reset isUserScrolling after scrolling stops
     scrollTimeoutRef.current = setTimeout(() => {
       setIsUserScrolling(false);
     }, 500);

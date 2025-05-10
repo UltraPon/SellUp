@@ -1,11 +1,27 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../api/apiClient';
+
+interface LoginFormData {
+  email: string;
+  password: string;
+}
+
+interface ApiError {
+  response?: {
+    data?: {
+      non_field_errors?: string[];
+      detail?: string;
+      error?: string;
+    };
+  };
+  message?: string;
+}
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<LoginFormData>({
         email: '',
         password: ''
     });
@@ -28,22 +44,18 @@ const Login: React.FC = () => {
         setLoading(true);
 
         try {
+            // Получаем CSRF токен
+            await api.get('csrf/');
 
-            await axios.get('http://127.0.0.1:8000/api/csrf/', {
-                withCredentials: true
-            });
-
-            const response = await axios.post(
-                'http://127.0.0.1:8000/api/login/',
+            const response = await api.post(
+                'login/',
                 formData,
                 {
-                    withCredentials: true,
                     headers: {
                         'X-CSRFToken': getCookie('csrftoken') || ''
                     }
                 }
             );
-            console.log(response.data);
 
             console.log('Авторизация успешна:', response.data);
 
@@ -55,16 +67,17 @@ const Login: React.FC = () => {
                 navigate('/profile');
             }
 
-        } catch (error: any) {
-            console.error('Ошибка при авторизации:', error.response?.data);
+        } catch (error: unknown) {
+            const err = error as ApiError;
+            console.error('Ошибка при авторизации:', err);
 
             // Улучшенная обработка ошибок
-            if (error.response?.data?.non_field_errors) {
-                setError(error.response.data.non_field_errors[0]);
-            } else if (error.response?.data?.detail) {
-                setError(error.response.data.detail);
-            } else if (error.response?.data?.error) {
-                setError(error.response.data.error);
+            if (err.response?.data?.non_field_errors) {
+                setError(err.response.data.non_field_errors[0]);
+            } else if (err.response?.data?.detail) {
+                setError(err.response.data.detail);
+            } else if (err.response?.data?.error) {
+                setError(err.response.data.error);
             } else {
                 setError('Неверный email или пароль');
             }

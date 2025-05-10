@@ -1,56 +1,101 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../api/apiClient';
+
+interface RegisterFormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+interface RegisterRequestData {
+  email: string;
+  password: string;
+  confirm_password: string;
+  role_id: number;
+  username: string;
+}
+
+interface ApiError {
+  isAxiosError?: boolean;
+  response?: {
+    data?: {
+      detail?: string;
+      email?: string[];
+      password?: string[];
+    };
+  };
+  message?: string;
+}
 
 const Register: React.FC = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<RegisterFormData>({
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-        confirmPassword: ''
-    });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
+    // Validation
     if (formData.password !== formData.confirmPassword) {
-        setError('Пароли не совпадают');
-        return;
+      setError('Пароли не совпадают');
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError('Пароль должен содержать минимум 8 символов');
+      return;
     }
 
     setLoading(true);
 
     try {
-        const response = await axios.post('http://127.0.0.1:8000/api/register/', {
-            email: formData.email,
-            password: formData.password,
-            confirm_password: formData.confirmPassword, // Изменено на snake_case
-            role_id: 2, // Добавляем роль по умолчанию
-            username: formData.email.split('@')[0] // Генерируем username из email
-        });
+      const requestData: RegisterRequestData = {
+        email: formData.email,
+        password: formData.password,
+        confirm_password: formData.confirmPassword,
+        role_id: 2, // Default role
+        username: formData.email.split('@')[0] // Generate username from email
+      };
 
-        console.log('Регистрация успешна:', response.data);
-        navigate('/check-email');
+      const response = await api.post('register/', requestData);
 
-    } catch (error: any) {
-        console.error('Ошибка при регистрации:', error.response?.data);
-        setError(error.response?.data?.detail || 'Ошибка регистрации');
+      console.log('Регистрация успешна:', response.data);
+      navigate('/check-email');
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      console.error('Ошибка при регистрации:', error);
+
+      // Handle different error cases
+      if (error.isAxiosError) {
+        if (error.response?.data?.email) {
+          setError(error.response.data.email[0]);
+        } else if (error.response?.data?.password) {
+          setError(error.response.data.password[0]);
+        } else {
+          setError(error.response?.data?.detail || 'Ошибка регистрации');
+        }
+      } else {
+        setError('Произошла неизвестная ошибка');
+      }
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

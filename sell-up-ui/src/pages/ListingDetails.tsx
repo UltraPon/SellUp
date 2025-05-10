@@ -1,6 +1,6 @@
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../api/apiClient";
 
 const StarRating = ({ rating, setRating }: { rating: number; setRating?: (rating: number) => void }) => {
   return (
@@ -57,6 +57,16 @@ interface Favorite {
   listing: number;
 }
 
+interface ApiError {
+  isAxiosError?: boolean;
+  response?: {
+    status?: number;
+    data?: any;
+    statusText?: string;
+  };
+  message?: string;
+}
+
 export default function ListingDetails() {
   const { id } = useParams<{ id: string }>();
   const [listing, setListing] = useState<Listing | null>(null);
@@ -86,17 +96,18 @@ export default function ListingDetails() {
       const token = localStorage.getItem('token');
       const headers = token ? { 'Authorization': `Token ${token}` } : {};
 
-      const response = await axios.get(
-        `http://127.0.0.1:8000/api/reviews/`,
+      const response = await api.get(
+        `reviews/`,
         {
-          params:{ reviewed: userId },
+          params: { reviewed: userId },
           headers: headers
         }
       );
       setReviews(response.data);
-    } catch (error) {
-      console.error('Ошибка при загрузке отзывов:', error);
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
+    } catch (error: unknown) {
+      const err = error as ApiError;
+      console.error('Ошибка при загрузке отзывов:', err);
+      if (err.isAxiosError && err.response?.status === 401) {
         navigate('/login');
       }
     }
@@ -110,14 +121,15 @@ export default function ListingDetails() {
     }
 
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/reviews/${reviewId}/`, {
+      await api.delete(`reviews/${reviewId}/`, {
         headers: {
           'Authorization': `Token ${token}`
         }
       });
       setReviews(reviews.filter(review => review.id !== reviewId));
-    } catch (error) {
-      console.error('Ошибка при удалении отзыва:', error);
+    } catch (error: unknown) {
+      const err = error as ApiError;
+      console.error('Ошибка при удалении отзыва:', err);
       alert('Не удалось удалить отзыв');
     }
   };
@@ -130,7 +142,7 @@ export default function ListingDetails() {
         const token = localStorage.getItem('token');
         if (token) {
           try {
-            const userResponse = await axios.get('http://127.0.0.1:8000/api/profile/', {
+            const userResponse = await api.get('profile/', {
               headers: {
                 'Authorization': `Token ${token}`
               }
@@ -141,7 +153,7 @@ export default function ListingDetails() {
           }
         }
 
-        const listingResponse = await axios.get(`http://127.0.0.1:8000/api/listings/${id}/`);
+        const listingResponse = await api.get(`listings/${id}/`);
         setListing(listingResponse.data);
 
         if (listingResponse.data.images && listingResponse.data.images.length > 0) {
@@ -150,7 +162,7 @@ export default function ListingDetails() {
 
         if (token) {
           try {
-            const favoriteResponse = await axios.get(`http://127.0.0.1:8000/api/favorites/?listing=${id}`, {
+            const favoriteResponse = await api.get(`favorites/?listing=${id}`, {
               headers: {
                 'Authorization': `Token ${token}`
               }
@@ -168,14 +180,12 @@ export default function ListingDetails() {
         if (listingResponse.data?.user?.id) {
           await fetchReviews(listingResponse.data.user.id);
         }
-      } catch (err) {
-        console.error("Ошибка при загрузке объявления:", err);
+      } catch (err: unknown) {
+        const error = err as ApiError;
+        console.error("Ошибка при загрузке объявления:", error);
         setError("Не удалось загрузить объявление");
-      } finally {
-        setLoading(false);
       }
     };
-
     fetchData();
   }, [id]);
 
@@ -191,7 +201,7 @@ export default function ListingDetails() {
 
     if (isFavorite && favoriteId) {
       // Удаляем из избранного
-      await axios.delete(`http://127.0.0.1:8000/api/favorites/${favoriteId}/`, {
+      await api.delete(`favorites/${favoriteId}/`, {
         headers: {
           'Authorization': `Token ${token}`
         }
@@ -200,8 +210,8 @@ export default function ListingDetails() {
       setFavoriteId(null);
     } else {
       // Добавляем в избранное
-      const response = await axios.post(
-        'http://127.0.0.1:8000/api/favorites/',
+      const response = await api.post(
+        'favorites/',
         { listing_id: numericId },
         {
           headers: {
@@ -214,19 +224,17 @@ export default function ListingDetails() {
       setFavoriteId(response.data.id);
     }
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      console.error('Ошибка при работе с избранным:', error.response?.data);
-      if (error.response?.status === 401 || error.response?.status === 403) {
+    const err = error as ApiError;
+    if (err.isAxiosError) {
+      console.error('Ошибка при работе с избранным:', err.response?.data);
+      if (err.response?.status === 401 || err.response?.status === 403) {
         localStorage.removeItem('token');
         navigate('/login');
       } else {
         alert('Произошла ошибка. Пожалуйста, попробуйте позже.');
       }
-    } else if (error instanceof Error) {
-      console.error('Неожиданная ошибка:', error.message);
-    } else {
-      console.error('Неизвестная ошибка:', error);
     }
+    console.error('Ошибка:', err.message || 'Неизвестная ошибка');
   }
 };
 
@@ -240,10 +248,10 @@ export default function ListingDetails() {
 
     try {
       setReviewLoading(true);
-      const response = await axios.post(
-        'http://127.0.0.1:8000/api/reviews/',
+      const response = await api.post(
+        'reviews/',
         {
-          reviewed: listing.user.id, // Убедитесь, что это ID пользователя, которому оставляют отзыв
+          reviewed: listing.user.id,
           rating: newReview.rating,
           comment: newReview.comment,
         },
@@ -257,13 +265,14 @@ export default function ListingDetails() {
 
       setReviews([response.data, ...reviews]);
       setNewReview({ rating: 5, comment: '' });
-    } catch (error) {
-      console.error('Ошибка при отправке отзыва:', error);
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 403) {
+    } catch (error: unknown) {
+      const err = error as ApiError;
+      console.error('Ошибка при отправке отзыва:', err);
+      if (err.isAxiosError) {
+        if (err.response?.status === 403) {
           alert('Недостаточно прав для выполнения этого действия');
         } else {
-          alert(error.response?.data?.detail || 'Не удалось отправить отзыв');
+          alert(err.response?.data?.detail || 'Не удалось отправить отзыв');
         }
       }
     } finally {
@@ -280,8 +289,8 @@ export default function ListingDetails() {
     }
 
     try {
-      const response = await axios.post(
-        'http://127.0.0.1:8000/api/messages/',
+      const response = await api.post(
+        'messages/',
         {
           receiver: listing.user.id,
           content: messageContent
@@ -298,8 +307,9 @@ export default function ListingDetails() {
       setMessageContent('');
       setIsMessageModalOpen(false);
       alert('Сообщение отправлено!');
-    } catch (error) {
-      console.error('Ошибка при отправке сообщения:', error);
+    } catch (error: unknown) {
+      const err = error as ApiError;
+      console.error('Ошибка при отправке сообщения:', err);
       alert('Не удалось отправить сообщение');
     }
   };

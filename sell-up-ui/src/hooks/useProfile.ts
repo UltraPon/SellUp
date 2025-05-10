@@ -8,6 +8,8 @@ interface ProfileData {
     phone_number: string;
 }
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 export const useProfile = () => {
     const [loading, setLoading] = useState(false);
     const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -19,12 +21,12 @@ export const useProfile = () => {
             setLoading(true);
 
             // 1. Получаем CSRF токен
-            await axios.get('http://127.0.0.1:8000/api/csrf/', {
+            await axios.get(`${API_URL}csrf/`, {
                 withCredentials: true
             });
 
             // 2. Запрашиваем профиль
-            const response = await axios.get('http://127.0.0.1:8000/api/profile/', {
+            const response = await axios.get(`${API_URL}profile/`, {
                 withCredentials: true,
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken') || ''
@@ -57,7 +59,7 @@ export const useProfile = () => {
     const refreshAuthToken = async () => {
         try {
             const response = await axios.post(
-                'http://127.0.0.1:8000/api/auth/refresh/',
+                `${API_URL}auth/refresh/`,
                 { refresh: localStorage.getItem('refresh_token') },
                 { withCredentials: true }
             );

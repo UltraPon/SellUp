@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { api } from '../api/apiClient';
 import { Link, useNavigate } from 'react-router-dom';
 
 interface Listing {
@@ -97,8 +97,8 @@ const ListingPage: React.FC = () => {
         setError('');
 
         const [categoriesResponse, listingsResponse] = await Promise.all([
-          axios.get<Category[]>('http://127.0.0.1:8000/api/categories/'),
-          axios.get<Listing[]>('http://127.0.0.1:8000/api/listings/')
+          api.get<Category[]>('categories/'),
+          api.get<Listing[]>('listings/')
         ]);
 
         if (!categoriesResponse.data || !listingsResponse.data) {
@@ -197,7 +197,7 @@ const ListingPage: React.FC = () => {
 
       console.log('Параметры фильтрации:', requestParams); // Отладка параметров
 
-      const response = await axios.get<Listing[]>('http://127.0.0.1:8000/api/listings/', {
+      const response = await api.get<Listing[]>('listings/', {
         params: requestParams
       });
 

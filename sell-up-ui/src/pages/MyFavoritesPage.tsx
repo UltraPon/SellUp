@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import { api } from '../api/apiClient';
 
 interface User {
   id: number;
@@ -23,6 +23,15 @@ interface Favorite {
   listing: Listing;
 }
 
+interface ApiError {
+  isAxiosError?: boolean;
+  response?: {
+    status?: number;
+    data?: any;
+  };
+  message?: string;
+}
+
 const MyFavoritesPage = () => {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,14 +47,14 @@ const MyFavoritesPage = () => {
           return;
         }
 
-        const response = await axios.get('http://127.0.0.1:8000/api/my-favorites/', {
+        const response = await api.get<Favorite[]>('my-favorites/', {
           headers: {
             'Authorization': `Token ${token}`
           }
         });
 
-        // Нормализация данных
-        const normalizedFavorites = response.data.map((favorite: any) => ({
+        // Normalize data
+        const normalizedFavorites = response.data.map((favorite) => ({
           ...favorite,
           listing: {
             ...favorite.listing,
@@ -56,12 +65,13 @@ const MyFavoritesPage = () => {
         }));
 
         setFavorites(normalizedFavorites);
-      } catch (err: any) {
-        if (err.response?.status === 401) {
+      } catch (err: unknown) {
+        const error = err as ApiError;
+        if (error.isAxiosError && error.response?.status === 401) {
           navigate('/login');
         } else {
           setError('Не удалось загрузить избранное. Пожалуйста, попробуйте позже.');
-          console.error('Ошибка загрузки избранного:', err);
+          console.error('Ошибка загрузки избранного:', error);
         }
       } finally {
         setLoading(false);
@@ -79,15 +89,16 @@ const MyFavoritesPage = () => {
         return;
       }
 
-      await axios.delete(`http://127.0.0.1:8000/api/favorites/${favoriteId}/`, {
+      await api.delete(`favorites/${favoriteId}/`, {
         headers: {
           'Authorization': `Token ${token}`
         }
       });
 
       setFavorites(favorites.filter(fav => fav.id !== favoriteId));
-    } catch (err) {
-      console.error('Ошибка при удалении из избранного:', err);
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      console.error('Ошибка при удалении из избранного:', error);
       setError('Не удалось удалить из избранного');
     }
   };

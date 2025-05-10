@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import { api } from '../api/apiClient';
 
 interface Listing {
   id: number;
@@ -9,7 +9,21 @@ interface Listing {
   description: string;
   created_at: string;
   images: { url: string }[];
-  user: number; // Добавляем информацию о владельце
+  user: number;
+}
+
+interface UserProfile {
+  id: number;
+  // Add other user properties if needed
+}
+
+interface ApiError {
+  isAxiosError?: boolean;
+  response?: {
+    status?: number;
+    data?: any;
+  };
+  message?: string;
 }
 
 const MyAdsPage = () => {
@@ -28,28 +42,29 @@ const MyAdsPage = () => {
           return;
         }
 
-        // Получаем текущего пользователя
-        const userResponse = await axios.get('http://127.0.0.1:8000/api/profile/', {
+        // Get current user
+        const userResponse = await api.get<UserProfile>('profile/', {
           headers: {
             'Authorization': `Token ${token}`
           }
         });
         setCurrentUser(userResponse.data.id);
 
-        // Получаем объявления
-        const listingsResponse = await axios.get('http://127.0.0.1:8000/api/my-listings/', {
+        // Get user's listings
+        const listingsResponse = await api.get<Listing[]>('my-listings/', {
           headers: {
             'Authorization': `Token ${token}`
           }
         });
 
         setListings(listingsResponse.data);
-      } catch (err: any) {
-        if (err.response?.status === 401) {
+      } catch (err: unknown) {
+        const error = err as ApiError;
+        if (error.isAxiosError && error.response?.status === 401) {
           navigate('/login');
         } else {
           setError('Не удалось загрузить данные. Пожалуйста, попробуйте позже.');
-          console.error('Ошибка загрузки:', err);
+          console.error('Ошибка загрузки:', error);
         }
       } finally {
         setLoading(false);
@@ -69,16 +84,17 @@ const MyAdsPage = () => {
         return;
       }
 
-      await axios.delete(`http://127.0.0.1:8000/api/listings/${id}/`, {
+      await api.delete(`listings/${id}/`, {
         headers: {
           'Authorization': `Token ${token}`
         }
       });
 
-      // Обновляем список после удаления
+      // Update listings after deletion
       setListings(listings.filter(listing => listing.id !== id));
-    } catch (err) {
-      console.error('Ошибка при удалении:', err);
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      console.error('Ошибка при удалении:', error);
       setError('Не удалось удалить объявление');
     }
   };

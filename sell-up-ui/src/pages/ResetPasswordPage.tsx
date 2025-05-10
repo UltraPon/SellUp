@@ -1,93 +1,100 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../api/apiClient';
+
+interface ResetPasswordData {
+  new_password: string;
+  confirm_password: string;
+}
+
+interface ApiError {
+  isAxiosError?: boolean;
+  response?: {
+    data?: {
+      new_password?: string[];
+      detail?: string;
+      message?: string;
+    };
+  };
+  message?: string;
+}
 
 const ResetPasswordPage: React.FC = () => {
-    const { token } = useParams<{ token: string }>();
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [tokenValid, setTokenValid] = useState<boolean | null>(null);
-    const navigate = useNavigate();
-    const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
+  const { token } = useParams<{ token: string }>();
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+  const navigate = useNavigate();
 
-    // Функция для получения CSRF-токена
-    const getCsrfToken = async (): Promise<string> => {
-        try {
-            await axios.get(`${API_URL}/api/csrf/`, { withCredentials: true });
-            const cookies = document.cookie.split('; ');
-            const csrfCookie = cookies.find(cookie => cookie.startsWith('csrftoken='));
-            return csrfCookie ? csrfCookie.split('=')[1] : '';
-        } catch (err) {
-            console.error('Error getting CSRF token:', err);
-            return '';
-        }
+  // Check token validity on component mount
+  useEffect(() => {
+    const checkTokenValidity = async () => {
+      try {
+        await api.get(`validate-reset-token/${token}/`);
+        setTokenValid(true);
+      } catch (err: unknown) {
+        const error = err as ApiError;
+        setTokenValid(false);
+        setError('Ссылка для сброса пароля недействительна или устарела');
+        console.error('Token validation error:', error);
+      }
     };
 
-    // Проверка валидности токена
-    useEffect(() => {
-        const checkTokenValidity = async () => {
-            try {
-                await axios.get(
-                    `${API_URL}/api/validate-reset-token/${token}/`,
-                    { withCredentials: true }
-                );
-                setTokenValid(true);
-            } catch (err) {
-                setTokenValid(false);
-                setError('Ссылка для сброса пароля недействительна или устарела');
-            }
-        };
+    if (token) {
+      checkTokenValidity();
+    }
+  }, [token]);
 
-        checkTokenValidity();
-    }, [token]);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    if (!token) {
+      setError('Отсутствует токен сброса пароля');
+      return;
+    }
 
-        if (newPassword !== confirmPassword) {
-            setError('Пароли не совпадают');
-            return;
-        }
+    if (newPassword !== confirmPassword) {
+      setError('Пароли не совпадают');
+      return;
+    }
 
-        setLoading(true);
-        setError('');
+    if (newPassword.length < 8) {
+      setError('Пароль должен содержать минимум 8 символов');
+      return;
+    }
 
-        try {
-            const csrfToken = await getCsrfToken();
+    setLoading(true);
+    setError('');
 
-            const response = await axios.post(
-                `${API_URL}/api/reset-password/${token}/`,
-                {
-                    new_password: newPassword,
-                    confirm_password: confirmPassword
-                },
-                {
-                    withCredentials: true,
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+    try {
+      const response = await api.post(
+        `reset-password/${token}/`,
+        {
+          new_password: newPassword,
+          confirm_password: confirmPassword
+        } as ResetPasswordData
+      );
 
-            setMessage(response.data.message || 'Пароль успешно изменен!');
-            setTimeout(() => navigate('/login'), 2000);
-        } catch (err: any) {
-            const errorData = err.response?.data;
-            if (errorData?.new_password) {
-                setError(errorData.new_password.join(' '));
-            } else {
-                setError(errorData?.detail ||
-                       errorData?.message ||
-                       'Произошла ошибка при смене пароля');
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
+      setMessage(response.data.message || 'Пароль успешно изменен!');
+      setTimeout(() => navigate('/login'), 2000);
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      const errorData = error.response?.data;
+
+      if (errorData?.new_password) {
+        setError(errorData.new_password.join(' '));
+      } else {
+        setError(errorData?.detail ||
+               errorData?.message ||
+               'Произошла ошибка при смене пароля');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
     if (tokenValid === null) {
         return <div className="text-center py-8">Проверка ссылки...</div>;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../api/apiClient'; // <-- используем общий axios instance
 
 const ForgotPasswordPage: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -8,7 +8,6 @@ const ForgotPasswordPage: React.FC = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
 
     const getCookie = (name: string): string | null => {
         const value = `; ${document.cookie}`;
@@ -25,13 +24,12 @@ const ForgotPasswordPage: React.FC = () => {
 
         try {
             // Получаем CSRF токен сначала
-            await axios.get(`${API_URL}/api/csrf/`, { withCredentials: true });
+            await api.get('csrf/');
 
-            const response = await axios.post(
-                `${API_URL}/api/request-password-reset/`,
+            const response = await api.post(
+                'request-password-reset/',
                 { email },
                 {
-                    withCredentials: true,
                     headers: {
                         'X-CSRFToken': getCookie('csrftoken') || ''
                     }

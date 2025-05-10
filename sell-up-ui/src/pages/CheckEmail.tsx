@@ -28,7 +28,7 @@ const CheckEmail = () => {
           чтобы завершить регистрацию.
         </p>
         <Link
-          to="http://localhost:3000/login"
+          to="/login"
           style={styles.loginLink}
         >
           Перейти к авторизации

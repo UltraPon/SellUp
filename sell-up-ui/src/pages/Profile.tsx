@@ -1,172 +1,184 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../api/apiClient';
 
 interface UserProfile {
-    username: string;
-    email: string;
-    phone_number?: string;
+  username: string;
+  email: string;
+  phone_number?: string;
 }
 
 interface Listing {
-    id: number;
-    title: string;
-    price: string;
-    category?: string;
-    created_at: string;
+  id: number;
+  title: string;
+  price: string;
+  category?: string;
+  created_at: string;
 }
 
 interface Favorite {
-    id: number;
-    listing: Listing;
+  id: number;
+  listing: Listing;
+}
+
+interface ApiError {
+  isAxiosError?: boolean;
+  response?: {
+    status?: number;
+    data?: any;
+  };
+  message?: string;
 }
 
 const Profile: React.FC = () => {
-    const navigate = useNavigate();
-    const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [formData, setFormData] = useState({
-        username: '',
-        phone_number: ''
-    });
-    const [isEditing, setIsEditing] = useState(false);
-    const [myAds, setMyAds] = useState<Listing[]>([]);
-    const [favoriteAds, setFavoriteAds] = useState<Listing[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [formData, setFormData] = useState({
+    username: '',
+    phone_number: ''
+  });
+  const [isEditing, setIsEditing] = useState(false);
+  const [myAds, setMyAds] = useState<Listing[]>([]);
+  const [favoriteAds, setFavoriteAds] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-    const fetchProfile = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                navigate('/login');
-                return;
-            }
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
 
-            const response = await axios.get('http://127.0.0.1:8000/api/profile/', {
-                headers: {
-                    'Authorization': `Token ${token}`
-                }
-            });
-
-            const profileData = {
-                username: response.data.username || '',
-                email: response.data.email || '',
-                phone_number: response.data.phone_number || ''
-            };
-
-            setProfile(profileData);
-            setFormData({
-                username: profileData.username,
-                phone_number: profileData.phone_number || ''
-            });
-        } catch (error) {
-            console.error('Ошибка при загрузке профиля:', error);
-            setError('Не удалось загрузить профиль');
+      const response = await api.get<UserProfile>('profile/', {
+        headers: {
+          'Authorization': `Token ${token}`
         }
-    };
+      });
 
-    const fetchMyAds = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) return;
+      const profileData = {
+        username: response.data.username || '',
+        email: response.data.email || '',
+        phone_number: response.data.phone_number || ''
+      };
 
-            const response = await axios.get('http://127.0.0.1:8000/api/my-listings/', {
-                headers: {
-                    'Authorization': `Token ${token}`
-                }
-            });
-            setMyAds(response.data);
-        } catch (error) {
-            console.error('Ошибка при загрузке объявлений:', error);
+      setProfile(profileData);
+      setFormData({
+        username: profileData.username,
+        phone_number: profileData.phone_number || ''
+      });
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      console.error('Ошибка при загрузке профиля:', error);
+      setError('Не удалось загрузить профиль');
+      if (error.isAxiosError && error.response?.status === 401) {
+        navigate('/login');
+      }
+    }
+  };
+
+  const fetchMyAds = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await api.get<Listing[]>('my-listings/', {
+        headers: {
+          'Authorization': `Token ${token}`
         }
-    };
+      });
+      setMyAds(response.data);
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      console.error('Ошибка при загрузке объявлений:', error);
+    }
+  };
 
-    const fetchFavorites = async () => {
+  const fetchFavorites = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await api.get<Favorite[]>('favorites/', {
+        headers: {
+          'Authorization': `Token ${token}`
+        }
+      });
+
+      const favoritesListings = response.data.map(item => item.listing);
+      setFavoriteAds(favoritesListings);
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      console.error('Ошибка при загрузке избранного:', error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
-        const response = await axios.get<{id: number, listing: Listing}[]>('http://127.0.0.1:8000/api/favorites/', {
-          headers: {
-            'Authorization': `Token ${token}`
-          }
-        });
-
-        // Извлекаем только объявления из ответа
-        const favoritesListings = response.data.map(item => item.listing);
-        setFavoriteAds(favoritesListings);
-      } catch (error) {
-        console.error('Ошибка при загрузке избранного:', error);
+        setLoading(true);
+        await fetchProfile();
+        await fetchMyAds();
+        await fetchFavorites();
+        setError('');
+      } catch (err: unknown) {
+        const error = err as ApiError;
+        console.error('Ошибка при загрузке данных:', error);
+        setError('Не удалось загрузить данные');
+      } finally {
+        setLoading(false);
       }
     };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                await fetchProfile();
-                await fetchMyAds();
-                await fetchFavorites();
-                setError('');
-            } catch (error) {
-                console.error('Ошибка при загрузке данных:', error);
-                setError('Не удалось загрузить данные');
-            } finally {
-                setLoading(false);
-            }
-        };
+    fetchData();
+  }, []);
 
-        fetchData();
-    }, []);
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Нет токена');
 
-    const handleSave = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) throw new Error('Нет токена');
-
-            const response = await axios.put(
-                'http://127.0.0.1:8000/api/profile/',
-                {
-                    username: formData.username,
-                    phone_number: formData.phone_number
-                },
-                {
-                    headers: {
-                        'Authorization': `Token ${token}`
-                    }
-                }
-            );
-
-            if (response.status === 200) {
-                const updatedProfile = {
-                    username: response.data.username,
-                    email: response.data.email,
-                    phone_number: response.data.phone_number
-                };
-
-                setProfile(updatedProfile);
-                setIsEditing(false);
-            } else {
-                setError('Не удалось обновить профиль');
-            }
-        } catch (error) {
-            console.error('Ошибка при обновлении профиля:', error);
-            setError('Ошибка при обновлении профиля');
+      const response = await api.put<UserProfile>(
+        'profile/',
+        {
+          username: formData.username,
+          phone_number: formData.phone_number
+        },
+        {
+          headers: {
+            'Authorization': `Token ${token}`
+          }
         }
-    };
+      );
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        navigate('/login');
-    };
+      const updatedProfile = {
+        username: response.data.username,
+        email: response.data.email,
+        phone_number: response.data.phone_number
+      };
+
+      setProfile(updatedProfile);
+      setIsEditing(false);
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      console.error('Ошибка при обновлении профиля:', error);
+      setError('Ошибка при обновлении профиля');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
 
     return (
         <div className="min-h-screen flex flex-col">

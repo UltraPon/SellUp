@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import { api } from '../api/apiClient';
 import { Link, useNavigate } from 'react-router-dom';
 
 interface ImageData {
@@ -50,7 +50,7 @@ const CreateAdPage = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/categories/');
+        const response = await api.get('categories/');
         setCategories(response.data);
       } catch (error) {
         console.error('Ошибка загрузки категорий:', error);
@@ -204,13 +204,12 @@ const CreateAdPage = () => {
       });
 
       // Отправка
-      const response = await axios.post(
-        'http://127.0.0.1:8000/api/listings/',
+      const response = await api.post(
+        'listings/',
         formData,
         {
           headers: {
             'Authorization': `Token ${token}`,
-            'Content-Type': 'multipart/form-data',
           },
           timeout: 60000
         }
@@ -231,7 +230,7 @@ const CreateAdPage = () => {
       console.error('Ошибка:', error);
       let errorMsg = 'Не удалось создать объявление';
 
-      if (axios.isAxiosError(error)) {
+      if (error.isAxiosError(error)) {
         // Обработка ошибок валидации
         if (error.response?.data?.images) {
           errorMsg = Array.isArray(error.response.data.images)
