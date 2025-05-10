@@ -13,7 +13,7 @@ import pickle
 from pathlib import Path
 import os
 
-import env
+import environ
 from google.oauth2 import service_account
 from google_auth_oauthlib.flow import InstalledAppFlow
 import dj_database_url
@@ -21,12 +21,10 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+env = environ.Env()
+environ.Env.read_env()
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure--%4&+ul9xtn&uu3e1-qsz^)vagpyjn4z8w43bpe4@vfnj%pic+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
