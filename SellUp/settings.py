@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from google.oauth2 import service_account
 from google_auth_oauthlib.flow import InstalledAppFlow
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,7 +29,7 @@ SECRET_KEY = 'django-insecure--%4&+ul9xtn&uu3e1-qsz^)vagpyjn4z8w43bpe4@vfnj%pic+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['sellup.onrender.com']
 
 
 # Application definition
@@ -110,15 +111,9 @@ WSGI_APPLICATION = 'SellUp.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'announcementdb',
-        'USER': 'postgres',
-        'PASSWORD': '1',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(default=os.environ.get('postgresql://announcementdb_user:VxsAf4Uc40O3qwnX2M99prhyzRd99j46@dpg-d0fjcsidbo4c73ah7v6g-a/announcementdb'))
 }
+
 
 LOGGING = {
     'version': 1,
