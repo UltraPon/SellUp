@@ -55,7 +55,7 @@ def generate_confirmation_token():
 
 # Функция отправки email с подтверждением
 def send_confirmation_email(user_email, token):
-    confirmation_url = f"{settings.FRONTEND_URL}/confirm-email/{token}/"
+    confirmation_url = f"{settings.BACKEND_URL}/confirm-email/{token}/"
     subject = "Подтвердите ваш email"
     message = f"Перейдите по ссылке для подтверждения вашего email: {confirmation_url}"
 
