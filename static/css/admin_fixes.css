@@ -1,14 +1,20 @@
-#header {
-    width: 100%;
-    overflow: hidden;
+/* Фид для логотипа в шапке */
+.img-small {
+    max-height: 50px !important;
+    width: auto !important;
+    padding: 5px 0;
 }
 
+/* Фикс для шапки */
+.brand-link {
+    text-align: center !important;
+    padding: 5px !important;
+    height: auto !important;
+}
+
+/* Фикс для брендинга */
 #branding {
-    max-width: 100%;
-}
-
-#branding img {
-    max-width: 100%;
-    height: auto;
-    display: block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

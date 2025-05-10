@@ -212,6 +212,7 @@ JAZZMIN_SETTINGS = {
     "site_header": "SellUp",
     "site_brand": "SellUp Administration",
     "site_logo": "img/sellup_logo.png",
+    "site_logo_classes": "img-small",
     "welcome_sign": "Добро пожаловать в админку SellUp!",
     "show_sidebar": True,
     "navigation_expanded": True,
