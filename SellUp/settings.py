@@ -239,9 +239,6 @@ DEFAULT_FROM_EMAIL = 'comasus45@gmail.com'
 
 AUTH_USER_MODEL = 'listings.User'
 
-FRONTEND_URL = 'http://localhost:3000'
-
-
 CSRF_COOKIE_NAME = 'csrftoken'
 CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
 
