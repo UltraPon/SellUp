@@ -208,9 +208,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 JAZZMIN_SETTINGS = {
-    "site_title": "SellUp Admin",
+    "site_title": "Админ-панель SellUp",
     "site_header": "SellUp",
-    "site_brand": "SellUp Administration",
+    "site_brand": "Панель управления",
     "site_logo": "img/sellup_logo.png",
     "login_logo": "img/sellup_logo_mini3.png",
     "welcome_sign": "Добро пожаловать в админ-панель SellUp!",
