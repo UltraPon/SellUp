@@ -1,0 +1,5 @@
+.login-page .brand-link img {
+    max-height: 100px !important;
+    width: auto !important;
+    object-fit: contain;
+}
