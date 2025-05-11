@@ -47,6 +47,10 @@ const MessagePage: React.FC = () => {
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  useEffect(() => {
+    document.title = "Сообщения | SellUp";
+  }, []);
+
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior });

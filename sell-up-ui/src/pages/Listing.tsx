@@ -52,6 +52,10 @@ const ListingPage: React.FC = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.title = "Объявления | SellUp";
+  }, []);
+
   // Функция для нормализации данных категорий объявлений
   const normalizeListingCategories = (listings: Listing[]) => {
     return listings.map(listing => {

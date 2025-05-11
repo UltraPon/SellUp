@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/apiClient';
 
@@ -20,6 +20,10 @@ interface ApiError {
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
+
+    useEffect(() => {
+        document.title = "Авторизация | SellUp";
+      }, []);
 
     const [formData, setFormData] = useState<LoginFormData>({
         email: '',

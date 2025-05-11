@@ -39,6 +39,10 @@ const MyFavoritesPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = "Избранные объявления | SellUp";
+  }, []);
+
+  useEffect(() => {
     const fetchFavorites = async () => {
       try {
         const token = localStorage.getItem('token');

@@ -34,6 +34,10 @@ const MyAdsPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = "Мои объявления | SellUp";
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');

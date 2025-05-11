@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/apiClient'; // <-- используем общий axios instance
 
@@ -8,6 +8,10 @@ const ForgotPasswordPage: React.FC = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        document.title = "Восстановление пароля | SellUp";
+      }, []);
 
     const getCookie = (name: string): string | null => {
         const value = `; ${document.cookie}`;

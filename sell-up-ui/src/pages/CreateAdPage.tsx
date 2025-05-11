@@ -46,7 +46,10 @@ const CreateAdPage = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Загрузка категорий
+  useEffect(() => {
+    document.title = "Создание объявления | SellUp";
+  }, []);
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {

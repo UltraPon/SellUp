@@ -29,6 +29,10 @@ const ResetPasswordPage: React.FC = () => {
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.title = "Изменение пароля | SellUp";
+  }, []);
+
   // Check token validity on component mount
   useEffect(() => {
     const checkTokenValidity = async () => {

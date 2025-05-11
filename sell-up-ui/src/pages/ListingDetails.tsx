@@ -92,6 +92,10 @@ export default function ListingDetails() {
   };
 
   useEffect(() => {
+    document.title = "Детали объявления | SellUp";
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
