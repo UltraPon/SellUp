@@ -213,6 +213,7 @@ JAZZMIN_SETTINGS = {
     "site_brand": "SellUp Administration",
     "site_logo": "img/sellup_logo.png",
     "login_logo": "img/sellup_logo_mini2.png",
+    "login_logo_style": "max-height: 100px; width: auto;",
     "welcome_sign": "Добро пожаловать в админ-панель SellUp!",
     "show_sidebar": True,
     "navigation_expanded": True,
