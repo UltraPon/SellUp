@@ -557,6 +557,52 @@ def validate_reset_token(request, token):
             status=status.HTTP_404_NOT_FOUND
         )
 
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_password(request, token):
+    new_password = request.data.get('new_password')
+    confirm_password = request.data.get('confirm_password')
+
+    # Валидация
+    if not new_password or not confirm_password:
+        return Response(
+            {'error': 'Необходимо указать новый пароль и подтверждение'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if new_password != confirm_password:
+        return Response(
+            {'error': 'Пароли не совпадают'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        user = User.objects.get(password_reset_token=token)
+
+        # Проверка срока действия токена (24 часа)
+        if timezone.now() > user.password_reset_token_created + timedelta(hours=24):
+            return Response(
+                {'error': 'Срок действия токена истёк'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Установка нового пароля
+        user.set_password(new_password)
+        user.password_reset_token = None
+        user.save()
+
+        return Response(
+            {'message': 'Пароль успешно изменён'},
+            status=status.HTTP_200_OK
+        )
+
+    except User.DoesNotExist:
+        return Response(
+            {'error': 'Неверный токен сброса пароля'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
 @api_view(['GET'])
 def test_api(request):
     return Response({
