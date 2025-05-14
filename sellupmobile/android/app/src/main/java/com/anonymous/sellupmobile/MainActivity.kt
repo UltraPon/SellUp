@@ -1,4 +1,4 @@
-package com.sellupmobile
+package com.anonymous.sellupmobile
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

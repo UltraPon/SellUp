@@ -16,7 +16,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 // Настраиваем базовый URL для всех запросов
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'hhttps://sellup.onrender.com/api/';
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'https://sellup.onrender.com/api/';
 
 const App: React.FC = () => {
   return (

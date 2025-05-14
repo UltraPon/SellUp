@@ -1,4 +1,10 @@
 {
-  "name": "sellupmobile",
-  "displayName": "sellupmobile"
-}
+    "name": "sellupmobile",
+    "displayName": "SellUp",
+    "expo": {
+      "platforms": ["ios", "android"],
+      "android": {
+        "hermes": true
+      }
+    }
+  }

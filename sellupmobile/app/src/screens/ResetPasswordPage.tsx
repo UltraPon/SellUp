@@ -16,6 +16,8 @@ import { RootStackParamList } from '../navigation/navigation';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
+const API_BASE_URL = 'https://sellup.onrender.com/api/';
+
 const ResetPasswordPage = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute();
@@ -27,14 +29,13 @@ const ResetPasswordPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
-  const API_URL = 'http://192.168.1.4:8000/api/test/'; // Replace with your API URL
 
   // Check token validity
   useEffect(() => {
     const checkTokenValidity = async () => {
       try {
         await axios.get(
-          `${API_URL}/api/validate-reset-token/${token}/`
+          `${API_BASE_URL}validate-reset-token/${token}/`
         );
         setTokenValid(true);
       } catch (err) {
@@ -57,7 +58,7 @@ const ResetPasswordPage = () => {
 
     try {
       const response = await axios.post(
-        `${API_URL}/api/reset-password/${token}/`,
+        `${API_BASE_URL}reset-password/${token}/`,
         {
           new_password: newPassword,
           confirm_password: confirmPassword

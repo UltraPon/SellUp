@@ -16,6 +16,8 @@ import { RootStackParamList } from '../navigation/navigation';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const API_BASE_URL = 'https://sellup.onrender.com/api/';
+
 interface UserProfile {
   username: string;
   email: string;
@@ -57,7 +59,7 @@ const Profile = () => {
         return;
       }
 
-      const response = await axios.get('http://10.0.2.2:8000/api/profile/', {
+      const response = await axios.get(`${API_BASE_URL}profile/`, {
         headers: {
           'Authorization': `Token ${token}`
         }
@@ -85,7 +87,7 @@ const Profile = () => {
       const token = await AsyncStorage.getItem('token');
       if (!token) return;
 
-      const response = await axios.get('http://10.0.2.2:8000/api/my-listings/', {
+      const response = await axios.get(`${API_BASE_URL}my-listings/`, {
         headers: {
           'Authorization': `Token ${token}`
         }
@@ -101,7 +103,7 @@ const Profile = () => {
       const token = await AsyncStorage.getItem('token');
       if (!token) return;
 
-      const response = await axios.get('http://10.0.2.2:8000/api/favorites/', {
+      const response = await axios.get(`${API_BASE_URL}favorites/`, {
         headers: {
           'Authorization': `Token ${token}`
         }
@@ -139,7 +141,7 @@ const Profile = () => {
       if (!token) throw new Error('Нет токена');
 
       const response = await axios.put(
-        'http://10.0.2.2:8000/api/profile/',
+        `${API_BASE_URL}profile/`,
         {
           username: formData.username,
           phone_number: formData.phone_number

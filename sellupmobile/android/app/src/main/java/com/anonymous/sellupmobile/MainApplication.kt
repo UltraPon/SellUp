@@ -1,4 +1,4 @@
-package com.sellupmobile
+package com.anonymous.sellupmobile
 
 import android.app.Application
 import com.facebook.react.PackageList

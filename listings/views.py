@@ -78,7 +78,6 @@ class RegisterView(APIView):
     def post(self, request):
         logger.info(f"Полученные данные: {request.data}")
 
-        # Валидация данных с помощью сериализатора
         serializer = RegisterSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -112,7 +111,7 @@ class ConfirmEmailView(View):
                 return JsonResponse({"message": "Email уже подтвержден!"})
 
             user.email_verified = True
-            user.email_verification_token = None  # Очищаем токен после использования
+            user.email_verification_token = None
             user.save()
 
             return JsonResponse({"message": "Email успешно подтвержден!"})
@@ -195,7 +194,7 @@ class ProfileView(APIView):
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.filter(parent__isnull=True)  # Только корневые категории
+    queryset = Category.objects.filter(parent__isnull=True)
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
@@ -228,13 +227,11 @@ class ListingViewSet(viewsets.ModelViewSet):
             Prefetch('listingcategory_set', queryset=ListingCategory.objects.select_related('category'))
         )
 
-        # Фильтрация по категории (рекурсивный поиск всех подкатегорий)
         category_id = self.request.GET.get('category')
         if category_id:
             from django.db.models import Q
             from django.db.models.functions import Lower
 
-            # Получаем все ID категорий в иерархии (включая текущую)
             def get_all_child_ids(parent_id):
                 ids = [parent_id]
                 children = Category.objects.filter(parent_id=parent_id)
@@ -287,7 +284,6 @@ class ListingViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_serializer_context(self):
-        """Добавляем request в контекст сериализатора"""
         context = super().get_serializer_context()
         context['request'] = self.request
         return context
@@ -348,7 +344,6 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-# Представление для отзывов
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all().order_by('-created_at')
     serializer_class = ReviewSerializer
@@ -560,52 +555,6 @@ def validate_reset_token(request, token):
         return Response(
             {'valid': False, 'error': 'Неверный токен'},
             status=status.HTTP_404_NOT_FOUND
-        )
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def reset_password(request, token):
-    new_password = request.data.get('new_password')
-    confirm_password = request.data.get('confirm_password')
-
-    # Валидация
-    if not new_password or not confirm_password:
-        return Response(
-            {'error': 'Необходимо указать новый пароль и подтверждение'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    if new_password != confirm_password:
-        return Response(
-            {'error': 'Пароли не совпадают'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    try:
-        user = User.objects.get(password_reset_token=token)
-
-        # Проверка срока действия токена (24 часа)
-        if timezone.now() > user.password_reset_token_created + timedelta(hours=24):
-            return Response(
-                {'error': 'Срок действия токена истёк'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Установка нового пароля
-        user.set_password(new_password)
-        user.password_reset_token = None
-        user.save()
-
-        return Response(
-            {'message': 'Пароль успешно изменён'},
-            status=status.HTTP_200_OK
-        )
-
-    except User.DoesNotExist:
-        return Response(
-            {'error': 'Неверный токен сброса пароля'},
-            status=status.HTTP_400_BAD_REQUEST
         )
 
 @api_view(['GET'])
