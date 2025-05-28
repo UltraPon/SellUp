@@ -175,6 +175,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://api.imgur.com",
     "https://sell-up-five.vercel.app",
     "https://sellup.onrender.com",
+    "sellup-app://",
 ]
 
 
