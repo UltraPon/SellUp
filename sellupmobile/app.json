@@ -5,6 +5,9 @@
       "platforms": ["ios", "android"],
       "android": {
         "hermes": true
+      },
+      "ios": {
+        "hermes": true
       }
     }
   }
